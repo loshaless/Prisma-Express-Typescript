@@ -1,14 +1,19 @@
 import { Request, Response } from 'express';
-import { createUser } from '../services/userService';
+import { createUser, getUserByEmail } from '../services/userService';
 import { HttpStatusCode } from '../utils/httpStatusCodes';
 
-export const createUserController = async (req: Request, res: Response) => {
+export async function createUserController(req: Request, res: Response, next: Function): Promise<void> {
   try {
-    const user = await createUser(req.body);
-    res.status(HttpStatusCode.CREATED).json(user);
+    // get user data to check if user already exists
+    const user = await getUserByEmail(req.body.email);
+    if (user) {
+      res.status(HttpStatusCode.BAD_REQUEST).json({ message: 'User already exists' });
+      return;
+    }
+    // create user
+    const createdUser = await createUser(req.body);
+    res.status(HttpStatusCode.CREATED).json(createdUser );
   } catch (error: any) {
     res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({ message: error.message });
   }
-};
-
-// Implement other CRUD operations similarly
+}
