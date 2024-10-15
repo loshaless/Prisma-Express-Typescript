@@ -12,7 +12,7 @@ export async function createUserController(req: Request, res: Response, next: Fu
     }
     // create user
     const createdUser = await createUser(req.body);
-    res.status(HttpStatusCode.CREATED).json(createdUser );
+    res.status(HttpStatusCode.CREATED).json({email: createdUser.email} );
   } catch (error: any) {
     res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({ message: error.message });
   }
