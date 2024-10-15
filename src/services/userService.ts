@@ -1,13 +1,16 @@
 import { User } from '../models/userModel';
-import { CreateUserDTO } from '../dtos/userDTO';
+import { CreateUserRequestDTO } from '../dtos/userDTO';
 import { User as UserType } from '@prisma/client';
 
-export function createUser(data: CreateUserDTO): Promise<UserType> {
-  return User.create({ data });
+class UserService {
+  createUser(data: CreateUserRequestDTO): Promise<UserType> {
+    return User.create({ data });
+  }
+
+  getUserByEmail(email: string): Promise<UserType | null> {
+    return User.findUnique({ where: { email } });
+  }
 }
 
-export function getUserByEmail(email: string): Promise<UserType | null> {
-  return User.findUnique({ where: { email } });
-}
-
-// Implement other CRUD operations similarly
+const userService = new UserService();
+export default userService

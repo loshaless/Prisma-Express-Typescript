@@ -1,19 +1,31 @@
-import { Request, Response } from 'express';
-import { createUser, getUserByEmail } from '../services/userService';
+import { NextFunction } from 'express';
 import { HttpStatusCode } from '../utils/httpStatusCodes';
+import userService from '../services/userService';
+import { CustomError } from '../utils/customError';
+import { CreateUserRequestDTO, CreateUserResponseDTO } from '../dtos/userDTO';
+import { CustomRequest } from '../utils/customRequest';
+import { CustomResponse } from '../utils/customResponse';
 
-export async function createUserController(req: Request, res: Response, next: Function): Promise<void> {
-  try {
-    // get user data to check if user already exists
-    const user = await getUserByEmail(req.body.email);
-    if (user) {
-      res.status(HttpStatusCode.BAD_REQUEST).json({ message: 'User already exists' });
-      return;
+class UserController {
+  async createUser(req: CustomRequest<CreateUserRequestDTO>, res: CustomResponse<CreateUserResponseDTO>, next: NextFunction): Promise<void> {
+    try {
+      // get user data to check if user already exists
+      const user = await userService.getUserByEmail(req.body.email);
+      if (user) {
+        throw new CustomError('User already exists', HttpStatusCode.BAD_REQUEST);
+      }
+      // create user
+      const createdUser = await userService.createUser(req.body);
+      res.status(HttpStatusCode.CREATED).json(
+        { 
+          email: createdUser.email
+        }
+      );
+    } catch (error){
+      next(error)
     }
-    // create user
-    const createdUser = await createUser(req.body);
-    res.status(HttpStatusCode.CREATED).json({email: createdUser.email} );
-  } catch (error: any) {
-    res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({ message: error.message });
   }
 }
+
+const userController = new UserController()
+export default userController;
