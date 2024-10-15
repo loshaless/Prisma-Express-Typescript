@@ -1,6 +1,11 @@
-import { Router } from 'express';
 import { authenticate } from '../middlewares/authMiddleware';
 import userController from '../controllers/userController';
+import { NextFunction, Router } from 'express';
+import { HttpStatusCode } from '../utils/httpStatusCodes';
+import { CreateUserRequestDTO, CreateUserResponseDTO } from '../dtos/userDTO';
+import { CustomRequest } from '../utils/customRequest';
+import { CustomResponse } from '../utils/customResponse';
+import { CustomError } from '../utils/customError';
 
 const router = Router();
 
@@ -9,10 +14,17 @@ const router = Router();
 * tags:
 *   name: Users
 *   description: API endpoints for managing users
-* /api/v1/users:
+* /api/users:
 *   post:
 *     summary: Create a new user
 *     tags: [Users]
+*     parameters:
+*       - in: header
+*         name: accept-version
+*         required: false
+*         schema:
+*           type: string
+*         description: Version of the API to use
 *     requestBody:
 *       required: true
 *       content:
@@ -35,8 +47,14 @@ const router = Router();
 *                 email:
 *                   type: string
 */
-router.post('/users', authenticate, userController.createUser);
-
-// Implement other CRUD routes similarly
+router.post('', authenticate, (req: CustomRequest, res: CustomResponse, next: NextFunction) => {
+  switch (req.version) {
+    case '1.0':
+      userController.createUser(req, res, next);
+      break;
+    default:
+      next(new CustomError('Version not supported', HttpStatusCode.BAD_REQUEST));
+  }
+});
 
 export default router;
