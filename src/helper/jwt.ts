@@ -5,7 +5,7 @@ dotenv.config();
 let password = process.env.JWT_SECRET
 
 function generateToken(payLoad: any) {
-  return jwt.sign(payLoad, password as string);
+  return jwt.sign(payLoad, password as string, {expiresIn: '1h'});
 }
 
 function verifyToken(token: string) {
