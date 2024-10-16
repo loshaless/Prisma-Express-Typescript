@@ -20,15 +20,25 @@ entity Post {
   updatedAt : DateTime
 }
 
-entity ChangeHistory {
+entity AuditLog {
   *id : Int
   --
-  postId : Int
-  change : String
-  changedAt : DateTime
+  tableName : String
+  operation : String
+  oldValues : String
+  newValues : String
+  timestamp : DateTime
+  userId : Int
+}
+
+entity Logger {
+  *id : Int
+  --
+  message : String
+  errorStack : String
+  timestamp : DateTime
 }
 
 User ||--o{ Post : "posts"
-Post ||--o{ ChangeHistory : "changeHistories"
-
+AuditLog ||--o{ User : "user"
 @enduml
