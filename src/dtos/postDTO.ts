@@ -2,6 +2,7 @@ export interface getPostResponseDTO {
   id: number;
   title: string;
   content: string;
+  authorEmail: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -15,6 +16,7 @@ export interface CreatePostResponseDTO {
   id: number;
   title: string;
   content: string;
+  authorEmail: string;
   createdAt: Date;
   updatedAt: Date;
 }

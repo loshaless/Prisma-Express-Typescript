@@ -19,6 +19,7 @@ class PostController {
         id: post.id,
         title: post.title,
         content: post.content,
+        authorEmail: post.author?.email,
         createdAt: post.createdAt,
         updatedAt: post.updatedAt
       }));
@@ -55,6 +56,7 @@ class PostController {
         id: post.id,
         title: post.title,
         content: post.content,
+        authorEmail: user.email,
         createdAt: post.createdAt,
         updatedAt: post.updatedAt
       });

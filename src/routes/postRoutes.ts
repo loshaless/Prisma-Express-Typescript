@@ -86,7 +86,13 @@ router.post('/', authenticate, (req, res, next) => {
  *     tags: [Posts]
  *     security:
  *       - bearerAuth: []
- *     parameters:
+ *     parameters:  
+ *       - in: header
+ *         name: token
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: jwt token get from login endpoint
  *       - in: path
  *         name: id
  *         required: true
@@ -127,6 +133,12 @@ router.put('/:id', authenticate, (req, res, next) => {
  *     security:
  *       - bearerAuth: []
  *     parameters:
+ *       - in: header
+ *         name: token
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: jwt token get from login endpoint
  *       - in: path
  *         name: id
  *         required: true

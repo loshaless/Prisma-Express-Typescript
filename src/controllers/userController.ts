@@ -8,6 +8,7 @@ import { CustomResponse } from '../utils/customResponse';
 import { compare, hash } from '../helper/bcrypt';
 import { generateToken } from '../helper/jwt';
 import { generateSalt } from '../helper/general';
+import { User } from '@prisma/client';
 
 class UserController {
   async registerUser(req: CustomRequest<CreateUserRequestDTO>, res: CustomResponse<CreateUserResponseDTO>, next: NextFunction): Promise<void> {
@@ -34,7 +35,7 @@ class UserController {
 
   async login(req: CustomRequest<LoginRequestDTO>, res: CustomResponse<LoginResponseDTO>, next: NextFunction) {
     try {
-      const user = await userService.getUserByEmail(req.body.email);
+      const user: User | null = await userService.getUserByEmail(req.body.email);
       if (!user) {
         throw new CustomError('User not found', HttpStatusCode.NOT_FOUND);
       }

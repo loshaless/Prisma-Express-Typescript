@@ -2,12 +2,25 @@ import { Post as PostType } from '@prisma/client';
 import { Post } from '../models/postModel';
 import { CreatePostRequestDTO, UpdatePostRequestDTO } from '../dtos/postDTO';
 
+interface PostWithAuthor extends PostType {
+  author: {
+    email: string;
+  };
+}
+
 class PostService {
-  /* get all with pagination */
-  getPosts(page: number, limit: number) : Promise<PostType[]> {
+  /* get all post with the author email with pagination */
+  getPosts(page: number, limit: number) : Promise<PostWithAuthor[]> {
     return Post.findMany({
       skip: (page - 1) * limit,
-      take: limit
+      take: limit,
+      include: {
+        author: {
+          select: {
+            email: true
+          }
+        }
+      }
     });
   }
 
