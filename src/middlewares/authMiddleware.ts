@@ -16,6 +16,7 @@ export async function authenticate(req: CustomRequest, _res: Response, next: Nex
     }
 
     req.jwt = decoded
+    req.jwt.id = user?.id
     next()
   } catch (err) {
     next(new CustomError('You must be logged in', HttpStatusCode.FORBIDDEN))

@@ -31,13 +31,21 @@ model Post {
   authorId    Int
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
-  changeHistories ChangeHistory[]
 }
 
-model ChangeHistory {
-  id        Int      @id @default(autoincrement())
-  post      Post     @relation(fields: [postId], references: [id])
-  postId    Int
-  change    String
-  changedAt DateTime @default(now())
+model AuditLog {
+  id         Int      @id @default(autoincrement())
+  tableName  String
+  operation  String
+  oldValues  String?
+  newValues  String?
+  timestamp  DateTime @default(now())
+  userId     Int?
+}
+
+model Logger {
+  id         Int      @id @default(autoincrement())
+  message    String
+  errorStack String
+  timestamp  DateTime @default(now())
 }
