@@ -1,6 +1,12 @@
 import { Post as PostType } from '@prisma/client';
 import { Post } from '../models/postModel';
 import { CreatePostRequestDTO, UpdatePostRequestDTO } from '../dtos/postDTO';
+import prisma from '../models/prisma';
+import { Operation } from '../constant/tableName';
+import auditService from './auditService';
+import { TableName } from '../constant/tableName';
+import { HttpStatusCode } from '../utils/httpStatusCodes';
+import { CustomError } from '../utils/customError';
 
 interface PostWithAuthor extends PostType {
   author: {
@@ -30,18 +36,61 @@ class PostService {
   }
 
   /* create post */
-  createPost(data: CreatePostRequestDTO, authorId: number) : Promise<PostType> {
-    return Post.create({ data: { ...data, authorId } });
+  async createPost(data: CreatePostRequestDTO, authorId: number) : Promise<PostType> {
+    return prisma.$transaction(async (prisma) => {
+      const post = await prisma.post.create({ data: { ...data, authorId } });
+
+      auditService.log({
+        tableName: TableName.POST,
+        operation: Operation.CREATE,
+        newValues: post,
+        userId: authorId
+      });
+
+      return post;
+    });
   }
 
   /* update post */
-  updatePost(id: number, data: UpdatePostRequestDTO) : Promise<PostType> {
-    return Post.update({ where: { id }, data });
+  updatePost(id: number, data: UpdatePostRequestDTO, idWhoUpdate: number) : Promise<PostType> {
+    return prisma.$transaction(async (prisma) => {
+      /* check if post exist */
+      const existingPost = await postService.getPostById(id);
+      if (!existingPost) {
+        throw new CustomError('Post not found', HttpStatusCode.NOT_FOUND);
+      }
+
+      const updatedPost = await prisma.post.update({ where: { id }, data });
+
+      auditService.log({
+        tableName: TableName.POST,
+        operation: Operation.UPDATE,
+        oldValues: existingPost,
+        newValues: updatedPost,
+        userId: idWhoUpdate
+      });
+
+      return updatedPost;
+    });
   }
 
   /* delete post */
-  deletePost(id: number) : Promise<PostType> {
-    return Post.delete({ where: { id } });
+  deletePost(id: number, idWhoDelete: number) : Promise<PostType> {
+    return prisma.$transaction(async (prisma) => {
+      const post = await prisma.post.delete({ where: { id } });
+      if (!post) {
+        throw new CustomError('Post not found', HttpStatusCode.NOT_FOUND);
+      }
+
+      auditService.log({
+        tableName: TableName.POST,
+        operation: Operation.DELETE,
+        oldValues: post,
+        userId: idWhoDelete
+      });
+
+      return post;
+    });
   }
 }
 

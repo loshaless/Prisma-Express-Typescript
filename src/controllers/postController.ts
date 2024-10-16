@@ -6,9 +6,6 @@ import { Request } from 'express';
 import { CustomError } from "../utils/customError";
 import { CreatePostRequestDTO, CreatePostResponseDTO, getPostResponseDTO, UpdatePostRequestDTO } from "../dtos/postDTO";
 import { CustomRequest } from "../utils/customRequest";
-import auditService from "../services/auditService";
-import { TableName } from "../constant/tableName";
-import { Operation } from "../constant/tableName";
 
 class PostController {
   async getPosts(req: Request, res: CustomResponse<getPostResponseDTO[]>, next: NextFunction) {
@@ -48,7 +45,11 @@ class PostController {
   
   async createPost(req: CustomRequest<CreatePostRequestDTO>, res: CustomResponse<CreatePostResponseDTO>, next: NextFunction) {
     try {
-      const post = await postService.createPost(req.body, req.jwt?.id || 0);
+      const post = await postService.createPost(
+        req.body, 
+        req.jwt?.id || 0
+      );
+
       res.status(HttpStatusCode.CREATED).json({
         id: post.id,
         title: post.title,
@@ -58,13 +59,6 @@ class PostController {
         updatedAt: post.updatedAt
       });
 
-      /* log audit */
-      await auditService.log({
-        tableName: TableName.POST,
-        operation: Operation.CREATE,
-        newValues: post,
-        userId: req.jwt?.id || 0
-      });
     } catch (error) {
       next(error);
     }
@@ -72,22 +66,12 @@ class PostController {
 
   async updatePost(req: CustomRequest<UpdatePostRequestDTO>, res: CustomResponse, next: NextFunction) {
     try {
-      /* check if post exist */
-      const existingPost = await postService.getPostById(parseInt(req.params.id));
-      if (!existingPost) {
-        throw new CustomError('Post not found', HttpStatusCode.NOT_FOUND);
-      }
+      const updatedPost = await postService.updatePost(
+        parseInt(req.params.id), 
+        req.body,
+        req.jwt?.id || 0
+      );
 
-      const updatedPost = await postService.updatePost(parseInt(req.params.id), req.body);
-
-      /* log audit */
-      await auditService.log({
-        tableName: TableName.POST,
-        operation: Operation.UPDATE,
-        oldValues: existingPost,
-        newValues: updatedPost,
-        userId: req.jwt?.id || 0
-      });
       res.status(HttpStatusCode.OK).json(updatedPost);
     } catch (error) {
       next(error);
@@ -96,21 +80,10 @@ class PostController {
 
   async deletePost(req: CustomRequest, res: CustomResponse, next: NextFunction) {
     try {
-      /* check if post exist */
-      const existingPost = await postService.getPostById(parseInt(req.params.id));
-      if (!existingPost) {
-        throw new CustomError('Post not found', HttpStatusCode.NOT_FOUND);
-      }
-
-      await postService.deletePost(parseInt(req.params.id));
-
-      /* log audit */
-      await auditService.log({
-        tableName: TableName.POST,
-        operation: Operation.DELETE,
-        oldValues: existingPost,
-        userId: req.jwt?.id || 0
-      });
+      await postService.deletePost(
+        parseInt(req.params.id),
+        req.jwt?.id || 0
+      );
 
       res.status(HttpStatusCode.NO_CONTENT).send();
     } catch (error) {
